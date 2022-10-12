@@ -1,11 +1,13 @@
 import { ethers } from "ethers";
 
-const campaignABI = require(".abis/campaign-abi.json")
-const campaignFactoryABI = require(".abis/campaign-factory-abi.json")
+const campaignABI = require("./abis/campaign-abi.json")
+const campaignFactoryABI = require("./abis/campaign-factory-abi.json")
 
 const provider = new ethers.providers.JsonRpcProvider(
-    process.env.NEXT_PUBLIC_RPC_URL
+    'https://goerli.infura.io/v3/a2c4bd0cfab04e9184356e9636c6ba06'
 );
+
+console.log(process.env.NEXT_PUBLIC_RPC_URL)
 
 const campaignFactoryContract = new ethers.Contract(
     '0x33C60052C996073B0afAE19B74897d4dFc08ad34',
@@ -23,7 +25,7 @@ const campaignContract = (contractAddress) => {
 
 class CampaignService {
     async getCampaigns(category) {
-        const query = campaignFactoryContract.filters.campaignCreated();
+        let query = campaignFactoryContract.filters.campaignCreated();
         if(category != "") {
             query = campaignFactoryContract.filters.campaignCreated(null,null,null,null,null,null,category);
         }

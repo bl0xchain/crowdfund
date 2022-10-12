@@ -4,13 +4,16 @@ import { create } from 'ipfs-http-client'
 import { toast } from 'react-toastify';
 import {ethers} from 'ethers';
 import CampaignFactory from "../services/abis/campaign-factory-abi.json"
+import { useDispatch, useSelector } from "react-redux";
+import { showPopUp } from "../redux/slices/walletSlice";
 
 const CreateCampaign = () => {
     const projectId = '2FwJU9nopNtm7wEpkn8hS52E33V'
     const projectSecret = '749ebac6306b40895333522fa111e71d'
     const auth = 'Basic ' + Buffer.from(projectId + ":" + projectSecret).toString('base64')
 
-    console.log(projectId)
+    const dispatch = useDispatch()
+    const status = useSelector((state) => state.wallet.status)
 
     const [title, setTitle] = useState("")
     const [story, setStory] = useState("")
@@ -64,25 +67,31 @@ const CreateCampaign = () => {
             return false
         }
 
-        setCreating(true)
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const contract = new ethers.Contract(
-            '0x33C60052C996073B0afAE19B74897d4dFc08ad34',
-            CampaignFactory,
-            signer
-        );
-        const amount = ethers.utils.parseEther(requiredAmount)
-        const campaignData = await contract.createCampaign(
-            title,
-            amount,
-            imageUri,
-            category,
-            story
-        );
-        await campaignData.wait();   
-        setAddress(campaignData.to);
-        setCreating(false)
+        if(status !== 'CONNECTED') {
+            dispatch(showPopUp())
+        } else {
+            setCreating(true)
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(
+                '0x33C60052C996073B0afAE19B74897d4dFc08ad34',
+                CampaignFactory,
+                signer
+            );
+            const amount = ethers.utils.parseEther(requiredAmount)
+            const campaignData = await contract.createCampaign(
+                title,
+                amount,
+                imageUri,
+                category,
+                story
+            );
+            await campaignData.wait();   
+            setAddress(campaignData.to);
+            setCreating(false)
+        }
+
+        
     }
 
     return (
